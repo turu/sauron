@@ -24,7 +24,7 @@ Typical usage flow
 ::
 
     #Activate your virtualenv
-    workon talkbackbot
+    workon sauron
 
     # Copy settings.ini.EXAMPLE to settings.ini and edit to suit yourself
     cp settings.ini.EXAMPLE settings.ini
