@@ -1,11 +1,11 @@
 [irc]
-endpoint = ssl:host=irc.freenode.net:port=7000
-nickName = sauron
-realName = sauron
+endpoint = tcp:host=irc.dftba.net:port=6667
+nickName = thething
+realName = thething
 
-channel = #newcoder
+channel = #test
 
 [sauron]
 # Trigger phrases, in lowercase
 triggers =
-    that's what she said
+    abrakadabra
