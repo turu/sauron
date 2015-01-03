@@ -23,19 +23,28 @@ Usage
 Typical usage flow
 ::
 
-    # Activate your virtualenv
-    workon sauron
+    #Activate your virtualenv
+    workon talkbackbot
 
-    # Copy settings.py.template to settings.py and edit to point to the right server/channel etc
-    cp settings.py.template settings.py
-    vim settings.py
-
-    # Start the bot
-    twistd twsrs
-
+    # Copy settings.ini.EXAMPLE to settings.ini and edit to suit yourself
+    cp settings.ini.EXAMPLE settings.ini
+    vim settings.ini
+    
+    # Run the bot
+    twistd -n sauron
+    
+    # OR if you have 'make' installed
+    make run
+    
+    # Optionally, you can set the config file
+    twistd -n sauron -c some-other-file.ini
+    
     # Stop the bot
-    kill `cat twistd.pid`
-
-    # Run unit tests (optional)
-    nosetests
+    <Ctrl-C>
+    
+    # Run unit tests
+    trial tests
+    
+    # OR if you have 'make' installed
+    make cov
 
