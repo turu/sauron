@@ -6,6 +6,7 @@ import time
 
 from twisted.internet import protocol
 from twisted.internet import reactor
+from twisted.internet import utils
 from twisted.internet.defer import Deferred
 from twisted.python import log
 from twisted.words.protocols import irc
@@ -40,6 +41,7 @@ class SauronBot(irc.IRCClient):
         self.nickname = self.factory.nickname
         self.realname = self.factory.realname
         irc.IRCClient.connectionMade(self)
+        self.startHeartbeat()
         self.logger = MessageLogger(self.factory.logdir, self.factory.channels)
         log.msg("[connected at %s]" % time.asctime(time.localtime(time.time())))
 
@@ -82,49 +84,49 @@ class SauronBot(irc.IRCClient):
 
     def __full_local_scan(self, match, target_dir, msg):
         out_dir = target_dir + "_local"
-        d = Deferred().addCallback(self.__notify_by_email, match, out_dir, msg)
         os.makedirs(out_dir)
-        retcode = os.system("wget -U " + USER_AGENT
-                            + " --follow-ftp "
-                            + "-r "
-                            + "-N "
-                            + "-l 10 "
-                            + "--no-remove-listing "
-                            + "--convert-links "
-                            + "-p "
-                            + "-w 0.5 "
-                            + "--random-wait "
-                            + "-x "
-                            + "-P " + out_dir
-                            + " " + match
-                            + " > " + out_dir + WGET_OUT
-                            + " 2>&1")
-        d.callback(retcode)
+        retcode = utils.getProcessValue("wget -U " + USER_AGENT
+                                        + " --follow-ftp "
+                                        + "-r "
+                                        + "-N "
+                                        + "-l 10 "
+                                        + "--no-remove-listing "
+                                        + "--no-parent "
+                                        + "--convert-links "
+                                        + "-p "
+                                        + "-w 0.5 "
+                                        + "--random-wait "
+                                        + "-x "
+                                        + "-P " + out_dir
+                                        + " " + match
+                                        + " > " + out_dir + WGET_OUT
+                                        + " 2>&1")
+        retcode.addCallback(self.__notify_by_email, match, out_dir, msg)
 
     def __shallow_outer_scan(self, match, target_dir, msg):
         out_dir = target_dir + "_outer"
         os.makedirs(out_dir)
-        d = Deferred().addCallback(self.__notify_by_email, match, out_dir, msg)
-        retcode = os.system("wget -U " + USER_AGENT
-                            + " --follow-ftp "
-                            + "-r "
-                            + "-N "
-                            + "-H "
-                            + "-l 3 "
-                            + "--no-remove-listing "
-                            + "--convert-links "
-                            + "-p "
-                            + "-w 0.5 "
-                            + "--random-wait "
-                            + "-x "
-                            + "-P " + out_dir
-                            + " " + match
-                            + " > " + out_dir + WGET_OUT
-                            + " 2>&1")
-        d.callback(retcode)
+        retcode = utils.getProcessValue("wget -U " + USER_AGENT
+                                        + " --follow-ftp "
+                                        + "-r "
+                                        + "-N "
+                                        + "-H "
+                                        + "-l 3 "
+                                        + "--no-remove-listing "
+                                        + "--no-parent "
+                                        + "--convert-links "
+                                        + "-p "
+                                        + "-w 0.5 "
+                                        + "--random-wait "
+                                        + "-x "
+                                        + "-P " + out_dir
+                                        + " " + match
+                                        + " > " + out_dir + WGET_OUT
+                                        + " 2>&1")
+        retcode.addCallback(self.__notify_by_email, match, out_dir, msg)
 
     def __notify_by_email(self, return_code, match, download_root, msg):
-        download_message = "Finished download of {match}\n.Stored under {root}\nDownload return code {code}\n\t- message:\n{msg}"\
+        download_message = "Finished download of {match}\n.Stored under {root}\nDownload return code {code}\n\t- message:\n{msg}" \
             .format(match=match, root=download_root, code=return_code, msg=msg)
         log.msg(download_message)
         recipients = self.factory.mail_recipients
