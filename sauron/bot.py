@@ -8,6 +8,8 @@ from twisted.python import log
 from twisted.words.protocols import irc
 from sauron import urlextractor
 
+USER_AGENT = "\"Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0\""
+
 
 class MessageLogger:
     def __init__(self, logdir, channels):
@@ -70,7 +72,39 @@ class SauronBot(irc.IRCClient):
         timestamp = time.strftime("%Y%m%dT%H%M%S", time.localtime(time.time()))
         target_dir = self.factory.datadir + "/" + channel + "/" + timestamp + "_" + user + "_" + match
         self.logger.log("will archivize {match} under {dir}".format(match=match, dir=target_dir), channel)
-        os.system("wget -m -p -w 1 --random-wait -x -P " + target_dir + " " + match)
+        self.full_local_scan(match, target_dir)
+        self.shallow_outer_scan(match, target_dir)
+
+    def full_local_scan(self, match, target_dir):
+        os.system("wget -U " + USER_AGENT
+                  + " --follow-ftp "
+                  + "-r "
+                  + "-N "
+                  + "-l inf "
+                  + "--no-remove-listing "
+                  + "--convert-links "
+                  + "-p "
+                  + "-w 0.1 "
+                  + "--random-wait "
+                  + "-x "
+                  + "-P " + target_dir + "_local"
+                  + " " + match)
+
+    def shallow_outer_scan(self, match, target_dir):
+        os.system("wget -U " + USER_AGENT
+                  + " --follow-ftp "
+                  + "-r "
+                  + "-N "
+                  + "-H "
+                  + "-l 3 "
+                  + "--no-remove-listing "
+                  + "--convert-links "
+                  + "-p "
+                  + "-w 0.1 "
+                  + "--random-wait "
+                  + "-x "
+                  + "-P " + target_dir + "_outer"
+                  + " " + match)
 
 
 class SauronBotFactory(protocol.ClientFactory):
