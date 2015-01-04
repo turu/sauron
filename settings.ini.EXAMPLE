@@ -3,9 +3,7 @@ endpoint = tcp:host=irc.dftba.net:port=6667
 nickName = thething
 realName = thething
 
-channel = #test
+channels = #test
 
 [sauron]
-# Trigger phrases, in lowercase
-triggers =
-    abrakadabra
+workdir = ./workdir

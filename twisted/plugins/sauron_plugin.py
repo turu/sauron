@@ -1,4 +1,5 @@
 from ConfigParser import ConfigParser
+import os
 
 from twisted.application.service import IServiceMaker, Service
 from twisted.internet.endpoints import clientFromString
@@ -15,16 +16,16 @@ class Options(usage.Options):
     ]
 
 
-
-class TalkBackBotService(Service):
+class SauronBotService(Service):
     _bot = None
 
-    def __init__(self, endpoint, channel, nickname, realname, triggers):
+    def __init__(self, endpoint, channels, nickname, realname, datadir, logdir):
         self._endpoint = endpoint
-        self._channel = channel
+        self._channels = channels
         self._nickname = nickname
         self._realname = realname
-        self._triggers = triggers
+        self._datadir = datadir
+        self._logdir = logdir
 
     def startService(self):
         """Construct a client & connect to server."""
@@ -39,10 +40,11 @@ class TalkBackBotService(Service):
 
         client = clientFromString(reactor, self._endpoint)
         factory = SauronBotFactory(
-            self._channel,
+            self._channels,
             self._nickname,
             self._realname,
-            self._triggers,
+            self._datadir,
+            self._logdir
         )
 
         return client.connect(factory).addCallbacks(connected, failure)
@@ -63,20 +65,33 @@ class BotServiceMaker(object):
         """Construct the sauron service."""
         config = ConfigParser()
         config.read([options['config']])
-        triggers = [
-            trigger.strip()
-            for trigger
-            in config.get('sauron', 'triggers').split('\n')
-            if trigger.strip()
-        ]
 
-        return TalkBackBotService(
+        channels = [c.strip() for c in config.get('irc', 'channels').split(',') if c.strip()]
+        workdir = config.get('sauron', 'workdir')
+        self.__prepare_directories(workdir, channels)
+
+        return SauronBotService(
             endpoint=config.get('irc', 'endpoint'),
-            channel=config.get('irc', 'channel'),
+            channels=channels,
             nickname=config.get('irc', 'nickname'),
             realname=config.get('irc', 'realname'),
-            triggers=triggers,
+            datadir=workdir + "/data",
+            logdir=workdir + "/logs"
         )
+
+    def __prepare_directories(self, workdir, channels):
+        if not os.path.exists(workdir):
+            os.makedirs(workdir)
+        logdir = workdir + "/logs"
+        if not os.path.exists(logdir):
+            os.makedirs(logdir)
+        datadir = workdir + "/data"
+        if not os.path.exists(datadir):
+            os.makedirs(datadir)
+        for channel in channels:
+            datadir_channel = datadir + "/" + channel
+            if not os.path.exists(datadir_channel):
+                os.makedirs(datadir_channel)
 
 # Now construct an object which *provides* the relevant interfaces
 # The name of this variable is irrelevant, as long as there is *some*

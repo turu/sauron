@@ -3,3 +3,5 @@ Mock
 nose
 pyopenssl
 twisted
+tldextract
+esmre
