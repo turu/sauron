@@ -88,11 +88,11 @@ class SauronBot(irc.IRCClient):
                             + " --follow-ftp "
                             + "-r "
                             + "-N "
-                            + "-l 50 "
+                            + "-l 10 "
                             + "--no-remove-listing "
                             + "--convert-links "
                             + "-p "
-                            + "-w 0.1 "
+                            + "-w 0.5 "
                             + "--random-wait "
                             + "-x "
                             + "-P " + out_dir
@@ -114,7 +114,7 @@ class SauronBot(irc.IRCClient):
                             + "--no-remove-listing "
                             + "--convert-links "
                             + "-p "
-                            + "-w 0.1 "
+                            + "-w 0.5 "
                             + "--random-wait "
                             + "-x "
                             + "-P " + out_dir
