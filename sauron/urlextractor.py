@@ -38,7 +38,7 @@ def extractUrl(text, match):
         if re.match("[a-zA-Z0-9-_.]", nextcharacter):
             return None
 
-        posttld = re.match(':?[0-9]*[/[!#$&-_;=?a-zA-Z]+]?', text[endpt:])
+        posttld = re.match(r':?[0-9]*[/[!#$&-_;=?%a-zA-Z]+]?', text[endpt:])
     pretld = re.search('[a-zA-Z0-9-_.]+?$', text[:startpt])
 
     if pretld:
