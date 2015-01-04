@@ -19,13 +19,14 @@ class Options(usage.Options):
 class SauronBotService(Service):
     _bot = None
 
-    def __init__(self, endpoint, channels, nickname, realname, datadir, logdir):
+    def __init__(self, endpoint, channels, nickname, realname, datadir, logdir, mails):
         self._endpoint = endpoint
         self._channels = channels
         self._nickname = nickname
         self._realname = realname
         self._datadir = datadir
         self._logdir = logdir
+        self._mails = mails
 
     def startService(self):
         """Construct a client & connect to server."""
@@ -44,7 +45,8 @@ class SauronBotService(Service):
             self._nickname,
             self._realname,
             self._datadir,
-            self._logdir
+            self._logdir,
+            self._mails
         )
 
         return client.connect(factory).addCallbacks(connected, failure)
@@ -67,6 +69,7 @@ class BotServiceMaker(object):
         config.read([options['config']])
 
         channels = [c.strip() for c in config.get('irc', 'channels').split(',') if c.strip()]
+        mails = [m.strip() for m in config.get('sauron', 'mails').split(',') if m.strip()]
         workdir = config.get('sauron', 'workdir')
         self.__prepare_directories(workdir, channels)
 
@@ -76,7 +79,8 @@ class BotServiceMaker(object):
             nickname=config.get('irc', 'nickname'),
             realname=config.get('irc', 'realname'),
             datadir=workdir + "/data",
-            logdir=workdir + "/logs"
+            logdir=workdir + "/logs",
+            mails=mails
         )
 
     def __prepare_directories(self, workdir, channels):

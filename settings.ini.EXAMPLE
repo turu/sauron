@@ -7,3 +7,4 @@ channels = #test
 
 [sauron]
 workdir = ./workdir
+mails = yourmail@dot.com, othermail@dot.com
