@@ -61,6 +61,7 @@ class SauronBot(irc.IRCClient):
 
     def joined(self, channel):
         """Called when the bot joins the channel."""
+        channel = channel.strip().lower()
         self.logger.log("[{nick} has joined {channel}]".format(nick=self.nickname, channel=channel, ), channel)
 
     def privmsg(self, user, channel, msg):
