@@ -44,6 +44,7 @@ class SauronBot(irc.IRCClient):
         self.realname = self.factory.realname
         irc.IRCClient.connectionMade(self)
         self.startHeartbeat()
+        self.factory.resetDelay()
         self.logger = MessageLogger(self.factory.logdir, self.factory.channels)
         log.msg("[connected at %s]" % time.asctime(time.localtime(time.time())))
 
@@ -51,6 +52,7 @@ class SauronBot(irc.IRCClient):
         """Called when a connection is lost."""
         irc.IRCClient.connectionLost(self, reason)
         log.msg("connectionLost {!r}".format(reason))
+        self.makeConnection(self.transport)
 
     # callbacks for events
 
@@ -136,7 +138,7 @@ class SauronBot(irc.IRCClient):
         self.factory.mail_server.send_mail(recipients, subject, download_message)
 
 
-class SauronBotFactory(protocol.ClientFactory):
+class SauronBotFactory(protocol.ReconnectingClientFactory):
     protocol = SauronBot
 
     def __init__(self, channels, nickname, realname, datadir, logdir, mail_recipients, mail_server):
@@ -151,11 +153,11 @@ class SauronBotFactory(protocol.ClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         log.msg("Connection lost. Reconnecting...")
-        connector.connect()
+        protocol.ReconnectingClientFactory.clientConnectionLost(connector, reason)
 
     def clientConnectionFailed(self, connector, reason):
         log.msg("Connection failed. Reconnecting...")
-        connector.connect()
+        protocol.ReconnectingClientFactory.clientConnectionFailed(connector, reason)
 
 
 
