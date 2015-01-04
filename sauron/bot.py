@@ -70,7 +70,7 @@ class SauronBot(irc.IRCClient):
         timestamp = time.strftime("%Y%m%dT%H%M%S", time.localtime(time.time()))
         target_dir = self.factory.datadir + "/" + channel + "/" + timestamp + "_" + user + "_" + match
         self.logger.log("will archivize {match} under {dir}".format(match=match, dir=target_dir), channel)
-        os.system("wget -m -w 1 --random-wait -x -P " + target_dir + " " + match)
+        os.system("wget -m -p -w 1 --random-wait -x -P " + target_dir + " " + match)
 
 
 class SauronBotFactory(protocol.ClientFactory):
