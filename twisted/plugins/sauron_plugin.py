@@ -6,6 +6,7 @@ from twisted.internet.endpoints import clientFromString
 from twisted.plugin import IPlugin
 from twisted.python import usage, log
 from zope.interface import implementer
+from sauron import mailing
 
 from sauron.bot import SauronBotFactory
 
@@ -19,7 +20,8 @@ class Options(usage.Options):
 class SauronBotService(Service):
     _bot = None
 
-    def __init__(self, endpoint, channels, nickname, realname, datadir, logdir, mails):
+    def __init__(self, endpoint, channels, nickname, realname, datadir, logdir, mails, mail_server):
+        self._mail_server = mail_server
         self._endpoint = endpoint
         self._channels = channels
         self._nickname = nickname
@@ -46,7 +48,8 @@ class SauronBotService(Service):
             self._realname,
             self._datadir,
             self._logdir,
-            self._mails
+            self._mails,
+            self._mail_server
         )
 
         return client.connect(factory).addCallbacks(connected, failure)
@@ -69,9 +72,11 @@ class BotServiceMaker(object):
         config.read([options['config']])
 
         channels = [c.strip() for c in config.get('irc', 'channels').split(',') if c.strip()]
-        mails = [m.strip() for m in config.get('sauron', 'mails').split(',') if m.strip()]
+        mails = [m.strip() for m in config.get('mail', 'recipients').split(',') if m.strip()]
         workdir = config.get('sauron', 'workdir')
         self.__prepare_directories(workdir, channels)
+
+        mail_server = self.__create_mail_server(config)
 
         return SauronBotService(
             endpoint=config.get('irc', 'endpoint'),
@@ -80,10 +85,12 @@ class BotServiceMaker(object):
             realname=config.get('irc', 'realname'),
             datadir=workdir + "/data",
             logdir=workdir + "/logs",
-            mails=mails
+            mails=mails,
+            mail_server=mail_server
         )
 
-    def __prepare_directories(self, workdir, channels):
+    @staticmethod
+    def __prepare_directories(workdir, channels):
         if not os.path.exists(workdir):
             os.makedirs(workdir)
         logdir = workdir + "/logs"
@@ -96,6 +103,21 @@ class BotServiceMaker(object):
             datadir_channel = datadir + "/" + channel
             if not os.path.exists(datadir_channel):
                 os.makedirs(datadir_channel)
+
+    @staticmethod
+    def __create_mail_server(config):
+        mail_enabled = config.getboolean('mail', 'enabled')
+        if not mail_enabled:
+            return mailing.NoopMailServer()
+        address = config.get('mail', 'address').strip()
+        server = config.get('mail', 'server').strip()
+        port = config.get('mail', 'port').strip()
+        user = config.get('mail', 'smtp_user').strip()
+        user = None if user == "" else user
+        passwd = config.get('mail', 'smtp_pass').strip()
+        passwd = None if passwd == "" else passwd
+        return mailing.DefaultMailServer(address, server, port, user, passwd)
+
 
 # Now construct an object which *provides* the relevant interfaces
 # The name of this variable is irrelevant, as long as there is *some*

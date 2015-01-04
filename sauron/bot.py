@@ -12,8 +12,6 @@ from twisted.words.protocols import irc
 from sauron import urlextractor
 from sauron import mailing
 
-SEND_FROM = "sauron@" + socket.gethostname()
-
 WGET_OUT = "/wget.out"
 
 USER_AGENT = "\"Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0\""
@@ -126,19 +124,20 @@ class SauronBot(irc.IRCClient):
         d.callback(retcode)
 
     def __notify_by_email(self, return_code, match, download_root, msg):
-        download_message = "Finished download of {match} under {root}, with return code {code} - message:\n{msg}"\
+        download_message = "Finished download of {match}\n.Stored under {root}\nDownload return code {code}\n\t- message:\n{msg}"\
             .format(match=match, root=download_root, code=return_code, msg=msg)
         log.msg(download_message)
         recipients = self.factory.mail_recipients
         subject = "Url {url} detected and downloaded".format(url=match)
-        mailing.send_mail(SEND_FROM, recipients, subject, download_message)
+        self.factory.mail_server.send_mail(recipients, subject, download_message)
 
 
 class SauronBotFactory(protocol.ClientFactory):
     protocol = SauronBot
 
-    def __init__(self, channels, nickname, realname, datadir, logdir, mail_recipients):
+    def __init__(self, channels, nickname, realname, datadir, logdir, mail_recipients, mail_server):
         """Initialize the bot factory with our settings."""
+        self.mail_server = mail_server
         self.channels = channels
         self.nickname = nickname
         self.realname = realname

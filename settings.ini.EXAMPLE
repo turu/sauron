@@ -7,4 +7,12 @@ channels = #test
 
 [sauron]
 workdir = ./workdir
-mails = yourmail@dot.com, othermail@dot.com
+
+[mail]
+enabled = false
+address = bot@mail.com
+recipients = recipient@mail.com
+server = 127.0.0.1
+port = 25
+smtp_user =
+smtp_pass =
