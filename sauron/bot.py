@@ -4,6 +4,7 @@ import re
 import time
 
 from twisted.internet import protocol
+from twisted.internet import reactor
 from twisted.python import log
 from twisted.words.protocols import irc
 from sauron import urlextractor
@@ -72,10 +73,10 @@ class SauronBot(irc.IRCClient):
         timestamp = time.strftime("%Y%m%dT%H%M%S", time.localtime(time.time()))
         target_dir = self.factory.datadir + "/" + channel + "/" + timestamp + "_" + user + "_" + match
         self.logger.log("will archivize {match} under {dir}".format(match=match, dir=target_dir), channel)
-        self.full_local_scan(match, target_dir)
-        self.shallow_outer_scan(match, target_dir)
+        reactor.callWhenRunning(self.__full_local_scan, match, target_dir)
+        reactor.callLater(3, self.__shallow_outer_scan, match, target_dir)
 
-    def full_local_scan(self, match, target_dir):
+    def __full_local_scan(self, match, target_dir):
         os.system("wget -U " + USER_AGENT
                   + " --follow-ftp "
                   + "-r "
@@ -90,7 +91,7 @@ class SauronBot(irc.IRCClient):
                   + "-P " + target_dir + "_local"
                   + " " + match)
 
-    def shallow_outer_scan(self, match, target_dir):
+    def __shallow_outer_scan(self, match, target_dir):
         os.system("wget -U " + USER_AGENT
                   + " --follow-ftp "
                   + "-r "
