@@ -65,10 +65,9 @@ class SauronBot(irc.IRCClient):
 
     def privmsg(self, user, channel, msg):
         """Called when the bot receives a message."""
+        channel = channel.strip().lower()
         sender_nick = user.split('!', 1)[0]
-        self.logger.log(
-            "received message on {channel}, by {sender}:\n {quote}".format(channel=channel, sender=sender_nick,
-                                                                           quote=msg), channel)
+        self.logger.log("{sender}: {quote}".format(channel=channel, sender=sender_nick, quote=msg), channel)
         for match in urlextractor.parseText(msg):
             self.logger.log("url {url} found in message".format(url=match[1]), channel)
             self.__archivize(match[1], user, channel, msg)

@@ -71,7 +71,7 @@ class BotServiceMaker(object):
         config = ConfigParser()
         config.read([options['config']])
 
-        channels = [c.strip() for c in config.get('irc', 'channels').split(',') if c.strip()]
+        channels = [c.strip().lower() for c in config.get('irc', 'channels').split(',') if c.strip()]
         mails = [m.strip() for m in config.get('mail', 'recipients').split(',') if m.strip()]
         workdir = config.get('sauron', 'workdir')
         self.__prepare_directories(workdir, channels)

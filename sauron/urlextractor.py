@@ -35,11 +35,11 @@ def extractUrl(text, match):
     # check the next character is valid
     if len(text) > endpt:
         nextcharacter = text[endpt]
-        if re.match("[a-z0-9-.]", nextcharacter):
+        if re.match("[a-zA-Z0-9-.]", nextcharacter):
             return None
 
-        posttld = re.match(':?[0-9]*[/[!#$&-;=?a-z]+]?', text[endpt:])
-    pretld = re.search('[a-z0-9-.]+?$', text[:startpt])
+        posttld = re.match(':?[0-9]*[/[!#$&-;=?a-zA-Z]+]?', text[endpt:])
+    pretld = re.search('[a-zA-Z0-9-.]+?$', text[:startpt])
 
     if pretld:
         url = pretld.group(0)
