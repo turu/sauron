@@ -36,6 +36,8 @@ class MessageLogger:
 
 
 class SauronBot(irc.IRCClient):
+    irc.IRCClient.heartbeatInterval = 45
+
     def connectionMade(self):
         """Called when a connection is made."""
         self.nickname = self.factory.nickname
@@ -146,3 +148,14 @@ class SauronBotFactory(protocol.ClientFactory):
         self.datadir = datadir
         self.logdir = logdir
         self.mail_recipients = mail_recipients
+
+    def clientConnectionLost(self, connector, reason):
+        log.msg("Connection lost. Reconnecting...")
+        connector.connect()
+
+    def clientConnectionFailed(self, connector, reason):
+        log.msg("Connection failed. Reconnecting...")
+        connector.connect()
+
+
+
