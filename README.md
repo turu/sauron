@@ -1,7 +1,7 @@
 sauron
 ======
 
-The eye of the Sauron casts its shadow upon you... and selected IRC channels.
+The eye of Sauron casts its shadow upon you... and selected IRC channels.
 
 
 Setup
@@ -9,7 +9,11 @@ Setup
 
 Installation
 ::
-
+    
+    # install virtualenv and virtualenvwrapper
+    sudo pip install virtualenv
+    sudo pip install virtualenvwrapper
+    
     # Create a virtualenv
     mkvirtualenv sauron
 

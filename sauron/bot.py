@@ -1,4 +1,4 @@
-# -*- test-case-name: tests.test_talkbackbot -*-
+# -*- test-case-name: tests.test_sauronbot -*-
 import os
 import re
 import time
@@ -8,6 +8,8 @@ from twisted.internet import reactor
 from twisted.python import log
 from twisted.words.protocols import irc
 from sauron import urlextractor
+
+WGET_OUT = "/wget.out"
 
 USER_AGENT = "\"Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0\""
 
@@ -56,15 +58,14 @@ class SauronBot(irc.IRCClient):
 
     def joined(self, channel):
         """Called when the bot joins the channel."""
-        log.msg("[{nick} has joined {channel}]"
-                .format(nick=self.nickname, channel=channel, ))
+        self.logger.log("[{nick} has joined {channel}]".format(nick=self.nickname, channel=channel, ), channel)
 
     def privmsg(self, user, channel, msg):
         """Called when the bot receives a message."""
         sender_nick = user.split('!', 1)[0]
         self.logger.log(
-            "received message on {channel}, by {sender}: {quote}".format(channel=channel, sender=sender_nick,
-                                                                         quote=msg), channel)
+            "received message on {channel}, by {sender}:\n {quote}".format(channel=channel, sender=sender_nick,
+                                                                           quote=msg), channel)
         for match in urlextractor.parseText(msg):
             self.logger.log("url {url} found in message".format(url=match[1]), channel)
             self.__archivize(match[1], user, channel)
@@ -77,6 +78,7 @@ class SauronBot(irc.IRCClient):
         reactor.callLater(3, self.__shallow_outer_scan, match, target_dir)
 
     def __full_local_scan(self, match, target_dir):
+        out_dir = target_dir + "_local"
         os.system("wget -U " + USER_AGENT
                   + " --follow-ftp "
                   + "-r "
@@ -88,10 +90,13 @@ class SauronBot(irc.IRCClient):
                   + "-w 0.1 "
                   + "--random-wait "
                   + "-x "
-                  + "-P " + target_dir + "_local"
-                  + " " + match)
+                  + "-P " + out_dir
+                  + " " + match
+                  + " > " + out_dir + WGET_OUT
+                  + " 2>&1")
 
     def __shallow_outer_scan(self, match, target_dir):
+        out_dir = target_dir + "_outer"
         os.system("wget -U " + USER_AGENT
                   + " --follow-ftp "
                   + "-r "
@@ -104,8 +109,10 @@ class SauronBot(irc.IRCClient):
                   + "-w 0.1 "
                   + "--random-wait "
                   + "-x "
-                  + "-P " + target_dir + "_outer"
-                  + " " + match)
+                  + "-P " + out_dir
+                  + " " + match
+                  + " > " + out_dir + WGET_OUT
+                  + " 2>&1")
 
 
 class SauronBotFactory(protocol.ClientFactory):

@@ -1,8 +1,8 @@
 run:
-	twistd -n twsrs
+	twistd -n sauron
 
 cov:
-	coverage run --branch --source talkback  `which trial` tests
+	coverage run --branch --source sauron  `which trial` tests
 	coverage report
 	coverage html
 
