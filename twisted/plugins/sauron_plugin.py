@@ -56,6 +56,7 @@ class SauronBotService(Service):
 
     def stopService(self):
         """Disconnect."""
+        self._mail_server.close()
         if self._bot and self._bot.transport.connected:
             self._bot.transport.loseConnection()
 

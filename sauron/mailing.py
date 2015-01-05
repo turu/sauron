@@ -5,6 +5,9 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
+from email.mime.text import MIMEText
+
+from twisted.mail.smtp import sendmail
 
 
 class MailServer(object):
@@ -18,9 +21,16 @@ class MailServer(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def close(self):
+        raise NotImplementedError()
+
 
 class NoopMailServer(MailServer):
     def send_mail(self, send_to, subject, text, files):
+        pass
+
+    def close(self):
         pass
 
 
@@ -32,6 +42,7 @@ class DefaultMailServer(MailServer):
         self.__port = port
         self.__user = user
         self.__passwd = passwd
+        self.__startup()
 
     def send_mail(self, send_to, subject, text, files=None):
         msg = MIMEMultipart(
@@ -49,9 +60,13 @@ class DefaultMailServer(MailServer):
                     Content_Disposition='attachment; filename="%s"' % basename(f)
                 ))
 
-        smtp = smtplib.SMTP(host=self.__server, port=self.__port)
-        smtp.starttls()
+        self.__smtp.sendmail(self.__my_address, send_to, msg.as_string())
+
+    def __startup(self):
+        self.__smtp = smtplib.SMTP(host=self.__server, port=self.__port)
+        self.__smtp.starttls()
         if self.__user is not None:
-            smtp.login(self.__user, self.__passwd)
-        smtp.sendmail(self.__my_address, send_to, msg.as_string())
-        smtp.close()
+            self.__smtp.login(self.__user, self.__passwd)
+
+    def close(self):
+        self.__smtp.close()
